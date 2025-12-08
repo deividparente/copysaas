@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String   @unique
+  password   String
+  role       String   @default("USER")
+  firstLogin Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Category {
+  id            Int            @id @default(autoincrement())
+  name          String
+  icon          String         @default("📁")
+  order         Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subcategories Subcategory[]
+
+  @@map("categories")
+}
+
+model Subcategory {
+  id         Int       @id @default(autoincrement())
+  name       String
+  categoryId Int
+  order      Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  messages   Message[]
+
+  @@map("subcategories")
+}
+
+model Message {
+  id            Int         @id @default(autoincrement())
+  content       String
+  subcategoryId Int
+  order         Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model Announcement {
+  id              Int      @id @default(autoincrement())
+  title           String
+  content         String?
+  youtubeUrl      String?
+  imageUrl        String?
+  buttonText      String?
+  buttonUrl       String?
+  isActive        Boolean  @default(true)
+  order           Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("announcements")
+}
+
+model Settings {
+  id                 Int      @id @default(autoincrement())
+  appName            String   @default("Raiar Mensagens")
+  primaryColor       String   @default("#5B2DFF")
+  secondaryColor     String   @default("#8B78FF")
+  logoUrl            String?
+  faviconUrl         String?
+  pageTitle          String   @default("Raiar Mensagens")
+  seoTitle           String   @default("Raiar Mensagens - Sistema de Mensagens")
+  theme              String   @default("light")
+  loginBgType        String   @default("gradient")
+  loginBgValue       String?
+  loginBgGradient    String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("settings")
+}
