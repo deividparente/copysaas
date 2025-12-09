@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: raiar-postgres
+    environment:
+      POSTGRES_DB: raiar_mensagens
+      POSTGRES_USER: raiar
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U raiar"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: https://github.com/deividparente/copysaas.git#main
+      dockerfile: backend/Dockerfile
+    container_name: raiar-backend
+    environment:
+      DATABASE_URL: postgresql://raiar:${DB_PASSWORD:-changeme}@postgres:5432/raiar_mensagens
+      JWT_SECRET: ${JWT_SECRET:-changeme-with-random-string}
+      FRONTEND_URL: ${FRONTEND_URL:-http://copy.dparente.site}
+      NODE_ENV: production
+      PORT: 3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: https://github.com/deividparente/copysaas.git#main
+      dockerfile: frontend/Dockerfile
+    container_name: raiar-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: ${BACKEND_URL:-http://copys.dparente.site}/api
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nginx:
+    image: nginx:alpine
+    container_name: raiar-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
