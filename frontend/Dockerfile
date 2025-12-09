@@ -2,6 +2,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Criar .env temporário para build
+RUN echo "NEXT_PUBLIC_API_URL=/api" > .env.local
+
 COPY package*.json ./
 RUN npm install
 
