@@ -1,73 +1,47 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
   postgres:
-    image: postgres:15-alpine
-    container_name: raiar-db
+    image: postgres:16-alpine
     environment:
       POSTGRES_DB: raiar_mensagens
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: raiar
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - raiar-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    restart: unless-stopped
 
-  # Backend API
   backend:
-    build:
-      context: .
-      dockerfile: backend.Dockerfile
-    container_name: raiar-backend
+    build: ./backend
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/raiar_mensagens
-      JWT_SECRET: seu-jwt-secret-mude-em-producao
-      FRONTEND_URL: http://localhost:3000
-      NEXT_PUBLIC_API_URL: http://localhost:3001/api
-      NODE_ENV: development
-    ports:
-      - "3001:3001"
+      DATABASE_URL: postgresql://raiar:${DB_PASSWORD}@postgres:5432/raiar_mensagens
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+      NODE_ENV: production
+      PORT: 3001
     depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./backend:/app/backend
-      - /app/backend/node_modules
-    networks:
-      - raiar-network
-    command: npm run dev
+      - postgres
+    restart: unless-stopped
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm start"
 
-  # Frontend
   frontend:
-    build:
-      context: .
-      dockerfile: frontend.Dockerfile
-    container_name: raiar-frontend
+    build: ./frontend
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001/api
-    ports:
-      - "3000:3000"
+      NEXT_PUBLIC_API_URL: ${BACKEND_URL}/api
     depends_on:
       - backend
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
     volumes:
-      - ./frontend:/app/frontend
-      - /app/frontend/node_modules
-    networks:
-      - raiar-network
-    command: npm run dev
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
 
 volumes:
   postgres_data:
-    driver: local
-
-networks:
-  raiar-network:
-    driver: bridge

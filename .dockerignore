@@ -1,11 +1,10 @@
-node_modules/
-.next/
-dist/
+node_modules
+npm-debug.log
+.next
+.env*.local
+dist
 *.log
-.env
-.env.local
 .DS_Store
 .git
 .gitignore
 README.md
-*.md
