@@ -17,6 +17,7 @@ interface Category {
     id: number;
     name: string;
     order: number;
+    icon?: string;
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
