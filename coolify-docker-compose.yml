@@ -19,8 +19,8 @@ services:
 
   backend:
     build:
-      context: https://github.com/deividparente/copysaas.git#main
-      dockerfile: backend/Dockerfile
+      context: https://github.com/deividparente/copysaas.git#main:backend
+      dockerfile: Dockerfile
     container_name: raiar-backend
     environment:
       DATABASE_URL: postgresql://raiar:${DB_PASSWORD:-changeme}@postgres:5432/raiar_mensagens
@@ -40,8 +40,8 @@ services:
 
   frontend:
     build:
-      context: https://github.com/deividparente/copysaas.git#main
-      dockerfile: frontend/Dockerfile
+      context: https://github.com/deividparente/copysaas.git#main:frontend
+      dockerfile: Dockerfile
     container_name: raiar-frontend
     environment:
       NEXT_PUBLIC_API_URL: ${BACKEND_URL:-http://copys.dparente.site}/api

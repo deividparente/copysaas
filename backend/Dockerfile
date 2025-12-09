@@ -2,15 +2,11 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copiar package files
-COPY package*.json ./
-COPY prisma ./prisma/
+# Copiar todos os arquivos
+COPY . .
 
 # Instalar dependências
 RUN npm ci --only=production
-
-# Copiar código
-COPY . .
 
 # Gerar Prisma Client
 RUN npx prisma generate
