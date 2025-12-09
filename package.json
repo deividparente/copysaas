@@ -1,9 +1,21 @@
 {
     "name": "raiar-mensagens",
     "version": "1.0.0",
+    "description": "Sistema SaaS de cópia de mensagens categorizadas",
     "private": true,
     "scripts": {
+        "setup": "bash setup-automático.sh",
+        "dev": "bash start.sh",
+        "start": "cd backend && npm run dev & cd frontend && npm run dev",
         "build": "cd backend && npm install && npx prisma generate && npx prisma migrate deploy && npm run seed && cd ../frontend && npm install && npm run build",
-        "start": "cd frontend && npm start"
+        "seed": "cd backend && npm run seed",
+        "prisma:studio": "cd backend && npx prisma studio",
+        "prisma:migrate": "cd backend && npx prisma migrate dev",
+        "backend:dev": "cd backend && npm run dev",
+        "frontend:dev": "cd frontend && npm run dev"
+    },
+    "engines": {
+        "node": ">=18.0.0",
+        "npm": ">=9.0.0"
     }
 }

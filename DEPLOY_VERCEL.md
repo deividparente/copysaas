@@ -1,53 +1,273 @@
-# 🚀 Deploy Automático no Vercel
+# 🚀 Deploy Vercel - Passo a Passo
 
-## Deploy em 1 Clique
+## Por que Vercel?
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/seu-usuario/raiar-mensagens)
-
-### Passos:
-
-1. **Clique no botão acima**
-2. **Conecte seu GitHub**
-3. **Clique em "Deploy"**
-
-**Pronto! Aguarde 2-3 minutos e seu sistema estará no ar! 🎉**
+✅ **Otimizado para Next.js** - Melhor performance  
+✅ **Deploy automático** - A cada push no GitHub  
+✅ **Banco de dados PostgreSQL** - Vercel Postgres integrado  
+✅ **Variáveis de ambiente seguras** - Criptografadas  
+✅ **Plano gratuito generoso** - Perfeito para iniciar  
 
 ---
 
-## O que acontece automaticamente?
+## 📋 Checklist Pré-Deploy
 
-✅ Vercel detecta Next.js  
-✅ Instala todas as dependências  
-✅ Cria banco de dados SQLite  
-✅ Roda migrações do Prisma  
-✅ Popula dados iniciais  
-✅ Faz build otimizado  
-✅ Deploy com SSL automático  
+- [ ] Código está no GitHub
+- [ ] Banco PostgreSQL criado (Supabase, Railway, Vercel Postgres, etc.)
+- [ ] Connection string do banco copiada
+- [ ] JWT_SECRET gerado com `openssl rand -hex 32`
 
 ---
 
-## Primeiro Acesso
+## Passo 1: Preparar o Banco de Dados
 
-Após o deploy, acesse a URL fornecida pelo Vercel:
+### Opção A: Supabase (Recomendado - Grátis)
 
-**Credenciais padrão:**
-- Email: `admin@raiar.com`
-- Senha: `Raiar@2026`
+1. Acesse [supabase.com](https://supabase.com)
+2. Clique "Start your project"
+3. Crie um novo projeto
+   - Name: `raiar-mensagens`
+   - Password: **Anote bem!**
+   - Region: `us-east-1`
+4. Espere o projeto ser criado
+5. Vá em **Settings → Database → Connection Pooling**
+6. Copie a connection string (modo TCP)
+7. Substitua `[YOUR-PASSWORD]` pela senha
 
-> 🔒 **Importante:** Mude a senha após o primeiro login!
+**Exemplo:**
+```
+postgresql://postgres:SuaSenha@db.xxxxx.supabase.co:5432/postgres
+```
+
+### Opção B: Vercel Postgres
+
+1. Acesse [vercel.com/postgres](https://vercel.com/postgres)
+2. Clique "Create Database"
+3. Vercel criará automaticamente
+4. Copie a connection string
+
+### Opção C: Railway
+
+1. Acesse [railway.app](https://railway.app)
+2. Crie novo projeto → Add PostgreSQL
+3. Copie a connection string
 
 ---
 
-## Personalização
+## Passo 2: Fazer Push para GitHub
 
-### 1. Domínio Customizado
+```bash
+# Adicione tudo ao git
+git add .
+git commit -m "Preparar para deploy Vercel"
 
-1. No painel do Vercel: **Settings** → **Domains**
+# Faça push
+git push origin main
+```
+
+---
+
+## Passo 3: Conectar Vercel
+
+### 3.1 Criar Projeto no Vercel
+
+1. Acesse [vercel.com](https://vercel.com)
+2. Clique "Add New" → "Project"
+3. Clique "Import Git Repository"
+4. Selecione seu repositório `raiar-mensagens`
+5. Clique "Import"
+
+### 3.2 Configurar Build
+
+Na tela "Configure Project":
+
+- **Project Name**: `raiar-mensagens` (ou seu nome)
+- **Framework**: `Next.js` (detectado automaticamente)
+- **Root Directory**: Deixe em branco
+
+Clique "Continue"
+
+### 3.3 Adicionar Variáveis de Ambiente
+
+Na tela "Environment Variables", adicione:
+
+| Name | Value | Descrição |
+|------|-------|-----------|
+| `DATABASE_URL` | `postgresql://postgres:...` | Connection string do Supabase/Railway |
+| `JWT_SECRET` | `resultado de openssl rand -hex 32` | Chave secreta (32 caracteres hex) |
+| `FRONTEND_URL` | `https://raiar-mensagens.vercel.app` | Será seu URL do Vercel |
+| `NODE_ENV` | `production` | Ambiente de produção |
+| `NEXT_PUBLIC_API_URL` | `/api` | URL da API (relativa) |
+
+**Como gerar JWT_SECRET:**
+```bash
+openssl rand -hex 32
+```
+
+Copie o resultado e cole em `JWT_SECRET`
+
+---
+
+## Passo 4: Deploy
+
+1. Clique "Deploy"
+2. Espere o build terminar (2-5 minutos)
+3. Assim que terminar, clique "Visit"
+
+**Pronto! 🎉**
+
+---
+
+## Passo 5: Teste
+
+### 5.1 Acessar o Site
+
+```
+https://seu-projeto.vercel.app
+```
+
+### 5.2 Fazer Login
+
+Use as credenciais padrão:
+- **Email**: `admin@admin.com`
+- **Senha**: Verifique no banco (execute `npm run prisma:studio`)
+
+### 5.3 Testar Funcionalidades
+
+1. ✅ Login funciona
+2. ✅ Dashboard carrega
+3. ✅ Criar categoria
+4. ✅ Adicionar mensagem
+5. ✅ Copiar mensagem
+
+---
+
+## ⚙️ Configuração Avançada (Opcional)
+
+### Usar Vercel Postgres (Integrado)
+
+1. No Vercel, vá em **Storage**
+2. Clique "Create Database" → "Postgres"
+3. Copie a connection string gerada
+4. Atualize `DATABASE_URL` nas variáveis de ambiente
+
+### Custom Domain
+
+1. No Vercel, vá em **Settings → Domains**
 2. Adicione seu domínio
-3. Configure DNS conforme instruções
-4. SSL automático!
+3. Configure DNS em seu registrador
+4. Aguarde validação (alguns minutos)
 
-### 2. Branding
+### Logging
+
+1. No Vercel, vá em **Functions → Logs**
+2. Veja logs em tempo real
+3. Debugging de erros
+
+---
+
+## 🔐 Segurança
+
+### Checklist de Segurança
+
+- [ ] JWT_SECRET é único e seguro (32+ caracteres)
+- [ ] DATABASE_URL não está no código (apenas em Vercel)
+- [ ] `.env` está no `.gitignore`
+- [ ] NODE_ENV está como "production"
+- [ ] FRONTEND_URL está correto
+
+### Proteger Variáveis
+
+1. Variáveis de ambiente no Vercel são **criptografadas**
+2. Apenas você e seu time podem vê-las
+3. Cada deployment recebe uma cópia segura
+
+---
+
+## 🚨 Troubleshooting
+
+### Build falha com "Cannot find module"
+
+```bash
+# Solução: Reinstale localmente
+npm install
+cd backend && npm install
+cd ../frontend && npm install
+npm run build
+
+# Faça push novamente
+git push
+```
+
+### "Database connection timeout"
+
+1. Verifique se DATABASE_URL está correta
+2. Cheque se o banco está online
+3. Verifique whitelist de IPs (Supabase aceita todos por padrão)
+
+### "API returns 404"
+
+1. Verifique `NEXT_PUBLIC_API_URL` = `/api`
+2. Verifique se backend está respondendo em `/api/*`
+3. Verifique logs do Vercel
+
+### Porta 3001 não está disponível
+
+Vercel usa serverless functions. Backend será `/api` automaticamente.
+
+---
+
+## 📊 Monitoramento
+
+### Ver Logs
+
+1. No Vercel Dashboard, clique seu projeto
+2. Vá em **Functions** → **Logs**
+3. Veja requisições em tempo real
+
+### Analytics
+
+1. Vá em **Analytics**
+2. Veja visitantes, requisições, errors
+3. Performance do site
+
+---
+
+## 🔄 Atualizações Futuras
+
+Após o primeiro deploy, qualquer push para `main` dispara automaticamente:
+
+1. Build do projeto
+2. Testes (se configurado)
+3. Deploy automático
+
+```bash
+# Seu workflow padrão
+git add .
+git commit -m "Minha alteração"
+git push origin main
+# ✅ Vercel faz deploy automaticamente!
+```
+
+---
+
+## 🎓 Recursos
+
+- [Documentação Vercel Next.js](https://vercel.com/docs/frameworks/nextjs)
+- [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables)
+- [Supabase PostgreSQL](https://supabase.com/docs/guides/database)
+- [Prisma PostgreSQL](https://www.prisma.io/docs/concepts/database-connectors/postgresql)
+
+---
+
+## 📞 Suporte
+
+Se tiver problemas:
+
+1. **Verificar Logs**: Vercel Dashboard → Logs
+2. **Reintentar Deploy**: Trigger deploy manualmente
+3. **Resetar**: Delete o projeto e reimporte
+4. **Comunidade**: [Vercel Discussions](https://github.com/vercel/next.js/discussions)
 
 Após fazer login como admin:
 1. Vá em **Branding Kit**
